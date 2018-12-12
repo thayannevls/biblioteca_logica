@@ -5,6 +5,7 @@ VAR
     condicao_de_entrega: {ok, atrasado, danificado};
     multa_pendente: boolean;
     indenizacao_pendente: boolean;
+    requisitado: boolean;
 
 ASSIGN
 
@@ -12,27 +13,33 @@ ASSIGN
     init(condicao_de_entrega) := ok;
     init(multa_pendente):= 0;
     init(indenizacao_pendente):= 0;
+    init(requisitado):= 0;
 
     next(livro) := case
-        (livro = disponivel) & (condicao_de_entrega = ok): {reservado};
-        (livro = falta) & (condicao_de_entrega = ok): {disponivel};
-        (livro = reservado) & (condicao_de_entrega = ok): {disponivel};
-        (livro = reservado) & (condicao_de_entrega = danificado): {falta};
-        (livro = reservado) & (condicao_de_entrega = atrasado): {falta};
-        TRUE: {disponivel};
+        -- casos base
+        (livro = disponivel) & (requisitado = 1): {reservado};
+        (livro = falta) & (requisitado = 1): {falta};
+        (livro = reservado) & (requisitado = 1): {reservado};
+
+        -- casos para entrega
+        (livro = reservado) & (indenizacao_pendente = 0) & (multa_pendente = 0): {disponivel};
+        (livro = reservado) & (indenizacao_pendente = 1) & (multa_pendente = 0): {falta};
+        (livro = reservado) & (indenizacao_pendente = 0) & (multa_pendente = 1): {reservado};
+
+        -- casos para falta
+        (livro = falta) & (indenizacao_pendente = 0) & (multa_pendente = 0): {disponivel};
+        (livro = falta) & (indenizacao_pendente = 1) & (multa_pendente = 0): {falta};
+        (livro = falta) & (indenizacao_pendente = 1) & (multa_pendente = 1): {falta};
+        (livro = falta) & (indenizacao_pendente = 0) & (multa_pendente = 1): {reservado};
+
+        TRUE: livro; -- nao muda nada
     esac;
 
-    next(condicao_de_entrega) := case
-        (condicao_de_entrega = atrasado) & (multa_pendente = 0) & (indenizacao_pendente = 0): {ok};
-        (condicao_de_entrega = danificado) & (multa_pendente = 0) & (indenizacao_pendente = 0): {ok};
-        
-        (condicao_de_entrega = atrasado) & (multa_pendente = 1): {atrasado};
-        (condicao_de_entrega = danificado) & (indenizacao_pendente = 1): {danificado};
+    next(requisitado):= !requisitado
 
-        (condicao_de_entrega = ok) & (multa_pendente = 1) & (indenizacao_pendente = 0): {atrasado};
-        (condicao_de_entrega = ok) & (multa_pendente = 0) & (indenizacao_pendente = 1): {falta};
+    next(multa_pendente):= !multa_pendente
 
-        TRUE: {disponivel};
-    esac;
+    next(indenizacao_pendente):= !indenizacao_pendente
+
 
 -- Talvez seja bom usar DEFINE para juntar os estados e definir em uma coisa so
