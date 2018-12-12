@@ -1,0 +1,20 @@
+MODULE main
+
+VAR
+    livro: {disponivel, reservado, falta};
+    condicao_de_entrega: {ok, atrasado, danificado}
+
+ASSIGN
+
+init(livro) := disponivel;
+init(condicao_de_entrega) := ok;
+
+next(livro) := case
+    (livro = disponivel) & (condicao_de_entrega = ok): {reservado};
+    (livro = falta) & (condicao_de_entrega = ok): {disponivel};
+    (livro = reservado) & (condicao_de_entrega = ok): {disponivel};
+    (livro = reservado) & (condicao_de_entrega = danificado): {falta};
+    (livro = reservado) & (condicao_de_entrega = atrasado): {falta};
+
+
+-- Talvez seja bom usar DEFINE para juntar os estados e definir em uma coisa so
