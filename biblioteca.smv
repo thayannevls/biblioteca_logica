@@ -2,19 +2,37 @@ MODULE main
 
 VAR
     livro: {disponivel, reservado, falta};
-    condicao_de_entrega: {ok, atrasado, danificado}
+    condicao_de_entrega: {ok, atrasado, danificado};
+    multa_pendente: boolean;
+    indenizacao_pendente: boolean;
 
 ASSIGN
 
-init(livro) := disponivel;
-init(condicao_de_entrega) := ok;
+    init(livro) := disponivel;
+    init(condicao_de_entrega) := ok;
+    init(multa_pendente):= 0;
+    init(indenizacao_pendente):= 0;
 
-next(livro) := case
-    (livro = disponivel) & (condicao_de_entrega = ok): {reservado};
-    (livro = falta) & (condicao_de_entrega = ok): {disponivel};
-    (livro = reservado) & (condicao_de_entrega = ok): {disponivel};
-    (livro = reservado) & (condicao_de_entrega = danificado): {falta};
-    (livro = reservado) & (condicao_de_entrega = atrasado): {falta};
+    next(livro) := case
+        (livro = disponivel) & (condicao_de_entrega = ok): {reservado};
+        (livro = falta) & (condicao_de_entrega = ok): {disponivel};
+        (livro = reservado) & (condicao_de_entrega = ok): {disponivel};
+        (livro = reservado) & (condicao_de_entrega = danificado): {falta};
+        (livro = reservado) & (condicao_de_entrega = atrasado): {falta};
+        TRUE: {disponivel};
+    esac;
 
+    next(condicao_de_entrega) := case
+        (condicao_de_entrega = atrasado) & (multa_pendente = 0) & (indenizacao_pendente = 0): {ok};
+        (condicao_de_entrega = danificado) & (multa_pendente = 0) & (indenizacao_pendente = 0): {ok};
+        
+        (condicao_de_entrega = atrasado) & (multa_pendente = 1): {atrasado};
+        (condicao_de_entrega = danificado) & (indenizacao_pendente = 1): {danificado};
+
+        (condicao_de_entrega = ok) & (multa_pendente = 1) & (indenizacao_pendente = 0): {atrasado};
+        (condicao_de_entrega = ok) & (multa_pendente = 0) & (indenizacao_pendente = 1): {falta};
+
+        TRUE: {disponivel};
+    esac;
 
 -- Talvez seja bom usar DEFINE para juntar os estados e definir em uma coisa so
