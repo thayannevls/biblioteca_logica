@@ -2,44 +2,41 @@ MODULE main
 
 VAR
     livro: {disponivel, reservado, falta};
-    condicao_de_entrega: {ok, atrasado, danificado};
     multa_pendente: boolean;
     indenizacao_pendente: boolean;
     requisitado: boolean;
 
 ASSIGN
-
     init(livro) := disponivel;
-    init(condicao_de_entrega) := ok;
-    init(multa_pendente):= 0;
-    init(indenizacao_pendente):= 0;
-    init(requisitado):= 0;
+    init(multa_pendente) := FALSE;
+    init(indenizacao_pendente) := FALSE;
+    init(requisitado) := FALSE;
 
     next(livro) := case
         -- casos base
-        (livro = disponivel) & (requisitado = 1): {reservado};
-        (livro = falta) & (requisitado = 1): {falta};
-        (livro = reservado) & (requisitado = 1): {reservado};
+        (livro = disponivel) & (requisitado = TRUE): {reservado};
+        (livro = falta) & (requisitado = TRUE): {falta};
+        (livro = reservado) & (requisitado = TRUE): {reservado};
 
         -- casos para entrega
-        (livro = reservado) & (indenizacao_pendente = 0) & (multa_pendente = 0): {disponivel};
-        (livro = reservado) & (indenizacao_pendente = 1) & (multa_pendente = 0): {falta};
-        (livro = reservado) & (indenizacao_pendente = 0) & (multa_pendente = 1): {reservado};
+        (livro = reservado) & (indenizacao_pendente = FALSE) & (multa_pendente = FALSE): {disponivel};
+        (livro = reservado) & (indenizacao_pendente = TRUE) & (multa_pendente = FALSE): {falta};
+        (livro = reservado) & (indenizacao_pendente = FALSE) & (multa_pendente = TRUE): {reservado};
 
         -- casos para falta
-        (livro = falta) & (indenizacao_pendente = 0) & (multa_pendente = 0): {disponivel};
-        (livro = falta) & (indenizacao_pendente = 1) & (multa_pendente = 0): {falta};
-        (livro = falta) & (indenizacao_pendente = 1) & (multa_pendente = 1): {falta};
-        (livro = falta) & (indenizacao_pendente = 0) & (multa_pendente = 1): {reservado};
+        (livro = falta) & (indenizacao_pendente = FALSE) & (multa_pendente = FALSE): {disponivel};
+        (livro = falta) & (indenizacao_pendente = TRUE) & (multa_pendente = FALSE): {falta};
+        (livro = falta) & (indenizacao_pendente = TRUE) & (multa_pendente = TRUE): {falta};
+        (livro = falta) & (indenizacao_pendente = FALSE) & (multa_pendente = TRUE): {reservado};
 
         TRUE: livro; -- nao muda nada
     esac;
 
-    next(requisitado):= !requisitado
+    next(requisitado):= !requisitado;
 
-    next(multa_pendente):= !multa_pendente
+    next(multa_pendente):= !multa_pendente;
 
-    next(indenizacao_pendente):= !indenizacao_pendente
+    next(indenizacao_pendente):= !indenizacao_pendente;
 
 
 -- Talvez seja bom usar DEFINE para juntar os estados e definir em uma coisa so
