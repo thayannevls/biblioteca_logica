@@ -1,42 +1,40 @@
 MODULE main
 
 VAR
-    livro: {disponivel, reservado, falta};
+    livro: {disponivel, reservado, atrasado};
     multa_pendente: boolean;
-    indenizacao_pendente: boolean;
     requisitado: boolean;
 
 ASSIGN
     init(livro) := disponivel;
-    init(multa_pendente) := FALSE;
-    init(indenizacao_pendente) := FALSE;
-    init(requisitado) := FALSE;
+    --init(multa_pendente) := FALSE;
+    --init(requisitado) := FALSE;
 
     next(livro) := case
         -- casos base
         (livro = disponivel) & (requisitado = TRUE): {reservado};
-        (livro = falta) & (requisitado = TRUE): {falta};
+        (livro = atrasado) & (requisitado = TRUE): {atrasado};
         (livro = reservado) & (requisitado = TRUE): {reservado};
 
         -- casos para entrega
-        (livro = reservado) & (indenizacao_pendente = FALSE) & (multa_pendente = FALSE): {disponivel};
-        (livro = reservado) & (indenizacao_pendente = TRUE) & (multa_pendente = FALSE): {falta};
-        (livro = reservado) & (indenizacao_pendente = FALSE) & (multa_pendente = TRUE): {reservado};
+        (livro = reservado) & (multa_pendente = FALSE): {disponivel};
+        (livro = reservado) & (multa_pendente = TRUE): {atrasado};
 
-        -- casos para falta
-        (livro = falta) & (indenizacao_pendente = FALSE) & (multa_pendente = FALSE): {disponivel};
-        (livro = falta) & (indenizacao_pendente = TRUE) & (multa_pendente = FALSE): {falta};
-        (livro = falta) & (indenizacao_pendente = TRUE) & (multa_pendente = TRUE): {falta};
-        (livro = falta) & (indenizacao_pendente = FALSE) & (multa_pendente = TRUE): {reservado};
+        -- casos para atrasado
+        (livro = atrasado) & (multa_pendente = FALSE): {disponivel};
+        (livro = atrasado) & (multa_pendente = TRUE): {atrasado};
 
         TRUE: livro; -- nao muda nada
     esac;
+-- comecei a definir propriedades (Não sei se esta tudo certo)
 
-    next(requisitado):= !requisitado;
+SPEC AF(livro = disponivel & requisitado = TRUE -> livro = reservado)
+SPEC AF(livro = disponivel & requisitado = FALSE -> livro = disponivel)
 
-    next(multa_pendente):= !multa_pendente;
+SPEC EF(livro = reservado & multa_pendente = TRUE -> livro = atrasado)
+SPEC EF(livro = reservado & multa_pendente = FALSE -> livro = disponivel)
 
-    next(indenizacao_pendente):= !indenizacao_pendente;
-
+SPEC AF(livro = atrasado & multa_pendente = TRUE -> livro = atrasado)
+SPEC AF(livro = atrasado & multa_pendente = FALSE -> livro = disponivel)
 
 -- Talvez seja bom usar DEFINE para juntar os estados e definir em uma coisa so
