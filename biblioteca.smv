@@ -1,32 +1,41 @@
 MODULE main
 
-VAR
-    livro: {disponivel, reservado, atrasado};
-    multa_pendente: boolean;
-    requisitado: boolean;
+	VAR
+		livro: {disponivel, reservado, atrasado};
+		multa_pendente: boolean;
+		requisitado: boolean;
+		system : process procedure(livro, multa_pendente, requisitado);
 
-ASSIGN
-    init(livro) := disponivel;
-    --init(multa_pendente) := FALSE;
-    --init(requisitado) := FALSE;
+	ASSIGN
+		init(livro) := disponivel;
+		--init(multa_pendente) := FALSE;
+		--init(requisitado) := FALSE;
 
-    next(livro) := case
-        -- casos base
-        (livro = disponivel) & (requisitado = TRUE): {reservado};
-        (livro = atrasado) & (requisitado = TRUE): {atrasado};
-        (livro = reservado) & (requisitado = TRUE): {reservado};
+MODULE procedure(livro, multa_pendente, requisitado)
 
-        -- casos para entrega
-        (livro = reservado) & (multa_pendente = FALSE): {disponivel};
-        (livro = reservado) & (multa_pendente = TRUE): {atrasado};
+	ASSIGN
+		next(livro) := 
+			case
+				-- casos base
+				(livro = disponivel) & (requisitado = TRUE): {reservado};
+				(livro = atrasado) & (requisitado = TRUE): {atrasado};
+				(livro = reservado) & (requisitado = TRUE): {reservado};
 
-        -- casos para atrasado
-        (livro = atrasado) & (multa_pendente = FALSE): {disponivel};
-        (livro = atrasado) & (multa_pendente = TRUE): {atrasado};
+				-- casos para entrega
+				(livro = reservado) & (multa_pendente = FALSE): {disponivel};
+				(livro = reservado) & (multa_pendente = TRUE): {atrasado};
 
-        TRUE: livro; -- nao muda nada
-    esac;
--- comecei a definir propriedades (Não sei se esta tudo certo)
+				-- casos para atrasado
+				(livro = atrasado) & (multa_pendente = FALSE): {disponivel};
+				(livro = atrasado) & (multa_pendente = TRUE): {atrasado};
+
+				TRUE: livro; -- nao muda nada
+			esac;
+
+	FAIRNESS
+		running
+		
+
 
 SPEC AF(livro = disponivel & requisitado = TRUE -> livro = reservado)
 SPEC AF(livro = disponivel & requisitado = FALSE -> livro = disponivel)
