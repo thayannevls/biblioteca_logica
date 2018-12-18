@@ -1,35 +1,35 @@
 MODULE main
 
 	VAR
-		livro: {disponivel, reservado, atrasado};
+		status: {disponivel, reservado, atrasado};
 		multa_pendente: boolean;
 		requisitado: boolean;
-		system : process procedure(livro, multa_pendente, requisitado);
+		system : process livro(status, multa_pendente, requisitado);
 
 	ASSIGN
-		init(livro) := disponivel;
+		init(status) := disponivel;
 		--init(multa_pendente) := FALSE;
 		--init(requisitado) := FALSE;
 
-MODULE procedure(livro, multa_pendente, requisitado)
+MODULE livro(status, multa_pendente, requisitado)
 
 	ASSIGN
-		next(livro) := 
+		next(status) := 
 			case
 				-- casos base
-				(livro = disponivel) & (requisitado = TRUE): {reservado};
-				(livro = atrasado) & (requisitado = TRUE): {atrasado};
-				(livro = reservado) & (requisitado = TRUE): {reservado};
+				(status = disponivel) & (requisitado = TRUE): {reservado};
+				(status = atrasado) & (requisitado = TRUE): {atrasado};
+				(status = reservado) & (requisitado = TRUE): {reservado};
 
 				-- casos para entrega
-				(livro = reservado) & (multa_pendente = FALSE): {disponivel};
-				(livro = reservado) & (multa_pendente = TRUE): {atrasado};
+				(status = reservado) & (multa_pendente = FALSE): {disponivel};
+				(status = reservado) & (multa_pendente = TRUE): {atrasado};
 
 				-- casos para atrasado
-				(livro = atrasado) & (multa_pendente = FALSE): {disponivel};
-				(livro = atrasado) & (multa_pendente = TRUE): {atrasado};
+				(status = atrasado) & (multa_pendente = FALSE): {disponivel};
+				(status = atrasado) & (multa_pendente = TRUE): {atrasado};
 
-				TRUE: livro; -- nao muda nada
+				TRUE: status; -- nao muda nada
 			esac;
 
 	FAIRNESS
@@ -37,13 +37,13 @@ MODULE procedure(livro, multa_pendente, requisitado)
 		
 
 
-SPEC AF(livro = disponivel & requisitado = TRUE -> livro = reservado)
-SPEC AF(livro = disponivel & requisitado = FALSE -> livro = disponivel)
+SPEC AF(status = disponivel & requisitado = TRUE -> status = reservado)
+SPEC AF(status = disponivel & requisitado = FALSE -> status = disponivel)
 
-SPEC EF(livro = reservado & multa_pendente = TRUE -> livro = atrasado)
-SPEC EF(livro = reservado & multa_pendente = FALSE -> livro = disponivel)
+SPEC EF(status = reservado & multa_pendente = TRUE -> status = atrasado)
+SPEC EF(status = reservado & multa_pendente = FALSE -> status = disponivel)
 
-SPEC AF(livro = atrasado & multa_pendente = TRUE -> livro = atrasado)
-SPEC AF(livro = atrasado & multa_pendente = FALSE -> livro = disponivel)
+SPEC AF(status = atrasado & multa_pendente = TRUE -> status = atrasado)
+SPEC AF(status = atrasado & multa_pendente = FALSE -> status = disponivel)
 
 -- Talvez seja bom usar DEFINE para juntar os estados e definir em uma coisa so
