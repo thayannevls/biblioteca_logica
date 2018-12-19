@@ -11,7 +11,9 @@ MODULE main
 		init(multa_pendente) := FALSE;
 		init(requisitado) := FALSE;
 
-		next(livro) := case
+
+		next(livro) := 
+			case
 				-- casos base
 				(livro = disponivel) & (requisitado = TRUE): {reservado};
 				(livro = atrasado) & (requisitado = TRUE): {atrasado};
@@ -26,8 +28,14 @@ MODULE main
 				(livro = atrasado) & (multa_pendente = TRUE): {atrasado};
 
 				TRUE: livro; -- nao muda nada
+
 			esac;
 		
+		next(multa_pendente) := 
+			case
+				multa_pendente = FALSE: {FALSE};
+				multa_pendente = TRUE: {TRUE, FALSE};
+			esac;
 
 -- Para todos os caminhos, eventualmente livro sera reservado ou atrasado se o mesmo for disponivel e se requisitado for TRUE
 SPEC AF(livro = {disponivel} & requisitado = TRUE -> livro = {reservado} | livro = {atrasado})
@@ -53,8 +61,9 @@ SPEC AG(livro = {disponivel} -> EF(multa_pendente = TRUE | multa_pendente = FALS
 -- Para nenhum caminho livro sera reservado se o mesmo for disponivel e se requisitado for FALSE
 SPEC AF!(livro = {disponivel} & requisitado = FALSE -> livro = {reservado} | livro = {atrasado})
 
--- 
+-- Nunca livro pode ser disponivel e multa_pendente ser TRUE ao mesmo tempo
 SPEC AG!(livro = disponivel & multa_pendente= TRUE)
 
---
+-- Nunca livro pode ser atrasado e multa_pendente ser FALSE ao mesmo tempo
 SPEC AG!(livro = atrasado & multa_pendente= FALSE)
+
