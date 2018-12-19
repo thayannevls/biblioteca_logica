@@ -23,11 +23,12 @@ Com o arquivo `NuSMV` na mesma pasta, use:
 
 ### Simular
 
-Primeiro iremos preparar o modelo, dentro do console, use:
 ```sh
 reset
 read_model -i biblioteca.smv
 flatten_hierarchy 
 encode_variables
 build_model
+pick_state  -i
+simulate -i -k  10
 ```

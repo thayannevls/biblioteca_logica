@@ -3,21 +3,19 @@ MODULE main
 	VAR
 		livro: {disponivel, reservado, atrasado};
 		multa_pendente: boolean;
-		requisitado: boolean;
+		solicitado: boolean;
 	
 	ASSIGN
 		
 		init(livro) := disponivel;
 		init(multa_pendente) := FALSE;
-		init(requisitado) := FALSE;
+		init(solicitado) := FALSE;
 
 
 		next(livro) := 
 			case
 				-- casos base
-				(livro = disponivel) & (requisitado = TRUE): {reservado};
-				(livro = atrasado) & (requisitado = TRUE): {atrasado};
-				(livro = reservado) & (requisitado = TRUE): {reservado};
+				(livro = disponivel) & (solicitado = TRUE): {reservado};
 
 				-- casos para entrega
 				(livro = reservado) & (multa_pendente = TRUE): {atrasado};
@@ -33,18 +31,20 @@ MODULE main
 		
 		next(multa_pendente) := 
 			case
-				multa_pendente = FALSE: {FALSE};
-				multa_pendente = TRUE: {TRUE, FALSE};
+				(livro = disponivel): {FALSE};
+				TRUE : {TRUE, FALSE};
 			esac;
+		
+		next(solicitado) := {TRUE, FALSE};
 
--- Para todos os caminhos, eventualmente livro sera reservado ou atrasado se o mesmo for disponivel e se requisitado for TRUE
-SPEC AF(livro = {disponivel} & requisitado = TRUE -> livro = {reservado} | livro = {atrasado})
+-- Para todos os caminhos, eventualmente livro sera reservado ou atrasado se o mesmo for disponivel e se solicitado for TRUE
+SPEC AF(livro = {disponivel} & solicitado = TRUE -> livro = {reservado} | livro = {atrasado})
 
--- Para todos os caminhos, e em todos os caminhos subsequentes, livro sera disponivel se o mesmo for disponivel e se requisitado for FALSE
-SPEC AG(livro = {disponivel} & requisitado = FALSE -> livro = {disponivel})
+-- Para todos os caminhos, e em todos os caminhos subsequentes, livro sera disponivel se o mesmo for disponivel e se solicitado for FALSE
+SPEC AG(livro = {disponivel} & solicitado = FALSE -> livro = {disponivel})
 
 -- cstatus sera atrasado se o mesmo for reservado e multa_pendente for TRUE
-SPEC AF(livro = {reservado} & multa_pendente = TRUE -> livro = {atrasado})
+SPEC AG(livro = {reservado} & multa_pendente = TRUE -> livro = {atrasado})
 
 -- Para todos os caminhos, eventualmente livro sera disponivel ou reservado se o mesmo for reservado e se multa_pendente for FALSE
 SPEC AF(livro = {reservado} & multa_pendente = FALSE -> livro = {disponivel} | livro = {reservado})
@@ -58,12 +58,11 @@ SPEC AF(livro = {atrasado} & multa_pendente = FALSE -> livro = {disponivel})
 -- Sempre que livro for disponivel, em algum caminho futuro multa_pendente sera TRUE ou FALSE
 SPEC AG(livro = {disponivel} -> EF(multa_pendente = TRUE | multa_pendente = FALSE))
 
--- Para nenhum caminho livro sera reservado se o mesmo for disponivel e se requisitado for FALSE
-SPEC AF!(livro = {disponivel} & requisitado = FALSE -> livro = {reservado} | livro = {atrasado})
+-- Para nenhum caminho livro sera reservado se o mesmo for disponivel e se solicitado for FALSE
+SPEC AF!(livro = {disponivel} & solicitado = FALSE -> livro = {reservado} | livro = {atrasado})
 
 -- Nunca livro pode ser disponivel e multa_pendente ser TRUE ao mesmo tempo
-SPEC AG!(livro = disponivel & multa_pendente= TRUE)
+SPEC AF !(livro = disponivel & multa_pendente= TRUE)
 
 -- Nunca livro pode ser atrasado e multa_pendente ser FALSE ao mesmo tempo
-SPEC AG!(livro = atrasado & multa_pendente= FALSE)
-
+SPEC AG !(livro = atrasado & multa_pendente= FALSE)
