@@ -43,7 +43,7 @@ SPEC AF(livro = {disponivel} & solicitado = TRUE -> livro = {reservado} | livro 
 -- Para todos os caminhos, e em todos os caminhos subsequentes, livro sera disponivel se o mesmo for disponivel e se solicitado for FALSE
 SPEC AG(livro = {disponivel} & solicitado = FALSE -> livro = {disponivel})
 
--- cstatus sera atrasado se o mesmo for reservado e multa_pendente for TRUE
+-- Para todos os caminhos, livro sera atrasado se o mesmo for reservado e multa_pendente for TRUE
 SPEC AG(livro = {reservado} & multa_pendente = TRUE -> livro = {atrasado})
 
 -- Para todos os caminhos, eventualmente livro sera disponivel ou reservado se o mesmo for reservado e se multa_pendente for FALSE
