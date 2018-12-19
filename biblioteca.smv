@@ -1,40 +1,45 @@
 MODULE main
 	
 	VAR
-		status: {disponivel, reservado, atrasado};
+		livro: {disponivel, reservado, atrasado};
 		multa_pendente: boolean;
 		requisitado: boolean;
 	
 	ASSIGN
 		
-		init(status) := disponivel;
+		init(livro) := disponivel;
 		init(multa_pendente) := FALSE;
 		init(requisitado) := FALSE;
 
-		next(status) := case
+		next(livro) := 
+			case
 				-- casos base
-				(status = disponivel) & (requisitado = TRUE): {reservado};
-				(status = atrasado) & (requisitado = TRUE): {atrasado};
-				(status = reservado) & (requisitado = TRUE): {reservado};
+				(livro = disponivel) & (requisitado = TRUE): {reservado};
+				(livro = atrasado) & (requisitado = TRUE): {atrasado};
+				(livro = reservado) & (requisitado = TRUE): {reservado};
 
 				-- casos para entrega
-				(status = reservado) & (multa_pendente = TRUE): {atrasado};
-				(status = reservado) & (multa_pendente = FALSE): {disponivel};
+				(livro = reservado) & (multa_pendente = TRUE): {atrasado};
+				(livro = reservado) & (multa_pendente = FALSE): {disponivel};
 
 				-- casos para atrasado
-				(status = atrasado) & (multa_pendente = FALSE): {disponivel};
-				(status = atrasado) & (multa_pendente = TRUE): {atrasado};
+				(livro = atrasado) & (multa_pendente = FALSE): {disponivel};
+				(livro = atrasado) & (multa_pendente = TRUE): {atrasado};
 
-				TRUE: status; -- nao muda nada
+				TRUE: {disponivel, reservado, atrasado}; -- nao muda nada
 			esac;
 		
+		next(multa_pendente) := 
+			case
+				multa_pendente = FALSE: {FALSE};
+				multa_pendente = TRUE: {TRUE, FALSE};
+			esac;
 
--- Casos que são TRUE
-SPEC AF(status = disponivel & requisitado = TRUE -> status = reservado)
-SPEC AF(status = disponivel & requisitado = FALSE -> status = disponivel)
-SPEC AF(status = reservado  & multa_pendente = TRUE -> status = atrasado)
-SPEC AF(status = reservado & multa_pendente = FALSE -> status = disponivel)
-SPEC AF(status = atrasado & multa_pendente = TRUE -> status = atrasado)
-SPEC AF(status = atrasado & multa_pendente = FALSE -> status = disponivel)
-SPEC AF(status = disponivel -> multa_pendente = FALSE)
-SPEC AF!(status = disponivel & requisitado = FALSE -> status = reservado)
+SPEC AF(livro = disponivel & requisitado = TRUE -> livro = reservado)
+SPEC AF(livro = disponivel & requisitado = FALSE -> livro = disponivel)
+SPEC AF(livro = reservado  & multa_pendente = TRUE -> livro = atrasado)
+SPEC AF(livro = reservado & multa_pendente = FALSE -> livro = disponivel)
+SPEC AF(livro = atrasado & multa_pendente = TRUE -> livro = atrasado)
+SPEC AF(livro = atrasado & multa_pendente = FALSE -> livro = disponivel)
+SPEC AF(livro = disponivel -> multa_pendente = FALSE)
+SPEC AF!(livro = disponivel & requisitado = FALSE -> livro = reservado)
